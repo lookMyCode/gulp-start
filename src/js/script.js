@@ -1,1 +1,1 @@
-@@include('alert.js');
+// only include other js files
