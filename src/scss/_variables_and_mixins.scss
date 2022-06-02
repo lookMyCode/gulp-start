@@ -1,0 +1,50 @@
+/* Variables */
+
+// Font sizes
+$thin: 100;
+$extraLight: 200;
+$light: 300;
+$regular: 400;
+$medium: 500;
+$semiBold: 600;
+$bold: 700;
+$extraBold: 800;
+$fwBlack: 900;
+
+// Colors
+$white: #FFFFFF;
+$black: #000000;
+
+/* End variables */
+
+/* Mixins */
+@mixin blockSize($w, $h) {
+  width: $w;
+  height: $h;
+}
+
+@mixin position($p, $t, $l) {
+  position: $p;
+  top: $t;
+  left: $l;
+}
+
+@mixin contentCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ------------------ */
+
+@mixin font($font_name, $file_name, $weight, $style) {
+  @font-face {
+    font-family: $font_name;
+    font-display: 'swap';
+    src: url("../fonts/#{$file_name}.ttf") format("ttf");
+    font-weight: #{$weight};
+    font-style: #{$style};
+  }
+}
+
+/* End mixins */

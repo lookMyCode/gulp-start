@@ -1,1 +1,7 @@
 // Only include other style files
+@import 'node_modules/bootstrap/scss/bootstrap.scss';
+
+@import '_variables_and_mixins.scss';
+@import '_bootstrap_reboot.scss';
+@import '_global.scss';
+@import '_mods.scss';

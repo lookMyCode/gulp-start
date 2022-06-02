@@ -1,0 +1,29 @@
+@import '_variables_and_mixins.scss';
+@import "_fonts";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-weight: $regular;
+  font-size: 16px;
+  min-height: 100vh;
+  height: auto;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+.main {
+  flex-grow: 1
+}
+
+
+@import "./_headers";
+

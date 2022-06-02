@@ -7,20 +7,28 @@ const path = {
     html: `${PROJECT_FOLDER}/`,
     css: `${PROJECT_FOLDER}/css`,
     js: `${PROJECT_FOLDER}/js/`,
+    ts: `${PROJECT_FOLDER}/ts/`,
+    php: `${PROJECT_FOLDER}/php/`,
     img: `${PROJECT_FOLDER}/img/`,
     fonts: `${PROJECT_FOLDER}/fonts/`,
+    files: `${PROJECT_FOLDER}/files/`,
   },
   src: {
     html: [`${SOURSE_FOLDER}/*.html`, `!${SOURSE_FOLDER}/_*.html`],
     css: `${SOURSE_FOLDER}/scss/style.scss`,
     js: `${SOURSE_FOLDER}/js/script.js`,
+    ts: `${SOURSE_FOLDER}/ts/**/*.ts`,
+    php: `${SOURSE_FOLDER}/php/*.php`,
     img: `${SOURSE_FOLDER}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
     fonts: `${SOURSE_FOLDER}/fonts/*.ttf`,
+    files: `${SOURSE_FOLDER}/files/**/*.*`,
   },
   watch: {
     html: `${SOURSE_FOLDER}/**/*.html`,
     css: `${SOURSE_FOLDER}/scss/**/*.scss`,
     js: `${SOURSE_FOLDER}/js/**/*.js`,
+    ts: `${SOURSE_FOLDER}/ts/**/*.ts`,
+    php: `${SOURSE_FOLDER}/php/**/*.php`,
     img: `${SOURSE_FOLDER}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
   },
   clean: `./${PROJECT_FOLDER}/`,
@@ -42,8 +50,11 @@ const
   imagemin      = require('gulp-imagemin'), // zip images
   webp          = require('gulp-webp'), // convert images to webp
   webphtml      = require('gulp-webp-html'), // select images format for html
-  svgSprite     = require('gulp-svg-sprite');
+  svgSprite     = require('gulp-svg-sprite'),
+  typescript    = require('gulp-typescript');
   
+const tsProject = typescript.createProject('tsconfig.json');
+
 
 function browserSync(params) {
   browsersync.init({
@@ -84,7 +95,6 @@ function css() {
 
 function js() {
   return src(path.src.js)
-    .pipe( fileinclude() )
     .pipe( babel({
       presets: ['@babel/env']
     }) )
@@ -95,6 +105,20 @@ function js() {
     }) )
     .pipe( dest(path.build.js) )
     .pipe( browsersync.stream() )
+}
+
+function ts() {
+  const tsResult = src(path.src.ts)
+    .pipe(tsProject());
+
+  return tsResult.js
+    .pipe(dest(path.build.ts))
+    .pipe( uglify() )
+    .pipe( rename({
+      extname: '.min.js'
+    }) )
+    .pipe(dest(path.build.ts))
+    .pipe( browsersync.stream() );
 }
 
 function images() {
@@ -114,6 +138,17 @@ function images() {
     .pipe( browsersync.stream() )
 }
 
+function php() {
+  src(path.src.php)
+    .pipe(dest(path.build.php))
+    .pipe( browsersync.stream() );
+}
+
+function files(params) {
+  src(path.src.files)
+    .pipe(dest(path.build.files));
+}
+
 gulp.task('svgSprite', () => {
   return gulp.src([`${SOURSE_FOLDER}/iconsprite/*.svg`])
     .pipe( svgSprite({
@@ -131,7 +166,9 @@ function watchFiles(params) {
   gulp.watch([path.watch.html], html);
   gulp.watch([path.watch.css], css);
   gulp.watch([path.watch.js], js);
+  gulp.watch([path.watch.ts], ts);
   gulp.watch([path.watch.img], images);
+  gulp.watch([path.watch.php], php);
 }
 
 function clean(params) {
@@ -139,12 +176,15 @@ function clean(params) {
 }
 
 const 
-  build = gulp.series( clean, gulp.parallel(images, js, css, html) ),
+  build = gulp.series( clean, gulp.parallel(files, php, images, js, ts, css, html) ),
   watch = gulp.parallel(build, watchFiles, browserSync);
 
 
+exports.files   = files;
+exports.php     = php;
 exports.images  = images;
 exports.js      = js;
+exports.ts      = ts;
 exports.css     = css;
 exports.html    = html;
 exports.build   = build;
