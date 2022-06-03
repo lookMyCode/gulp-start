@@ -1,13 +1,7 @@
-export interface IConfig {
-  componentName: string
+export interface IQueryParams {
+  [key: string]: string
 }
 
-export interface IForRenderProxy {
-  [className: string]: {
-    [key: string]: any
-  }
-}
-
-export type ObjectForRender<T> = {
-  value: T
+export interface IRouterNavigateParams {
+  qp?: IQueryParams
 }
