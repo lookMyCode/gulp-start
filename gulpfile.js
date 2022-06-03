@@ -1,6 +1,8 @@
 const
   PROJECT_FOLDER = 'dist',
-  SOURSE_FOLDER  = 'src';
+  SOURSE_FOLDER  = 'src',
+  COMPONENTS_PROJECT_FOLDER = 'dist/components',
+  COMPONENTS_SOURSE_FOLDER  = 'src/components';
 
 const path = {
   build: {
@@ -34,6 +36,28 @@ const path = {
   clean: `./${PROJECT_FOLDER}/`,
 }
 
+const componentsPath = {
+  build: {
+    html: `${COMPONENTS_PROJECT_FOLDER}/`,
+    css: `${COMPONENTS_PROJECT_FOLDER}/`,
+    js: `${COMPONENTS_PROJECT_FOLDER}/`,
+    ts: `${COMPONENTS_PROJECT_FOLDER}/`,
+  },
+  src: {
+    html: [`${COMPONENTS_SOURSE_FOLDER}/**/*.html`, `!${COMPONENTS_SOURSE_FOLDER}/**/_*.html`],
+    css: `${COMPONENTS_SOURSE_FOLDER}/**/*.scss`,
+    js: `${COMPONENTS_SOURSE_FOLDER}/**/*.js`,
+    ts: `${COMPONENTS_SOURSE_FOLDER}/**/*.ts`,
+  },
+  watch: {
+    html: `${COMPONENTS_SOURSE_FOLDER}/**/*.html`,
+    css: `${COMPONENTS_SOURSE_FOLDER}/**/*.scss`,
+    js: `${COMPONENTS_SOURSE_FOLDER}/**/*.js`,
+    ts: `${COMPONENTS_SOURSE_FOLDER}/**/*.ts`,
+  },
+  clean: `./${PROJECT_FOLDER}/`,
+}
+
 const 
   { src, dest } = require('gulp'),
   gulp          = require('gulp'),
@@ -54,6 +78,7 @@ const
   typescript    = require('gulp-typescript');
   
 const tsProject = typescript.createProject('tsconfig.json');
+const tsComponentsProject = typescript.createProject('tsconfig.json');
 
 
 function browserSync(params) {
@@ -121,6 +146,61 @@ function ts() {
     .pipe( browsersync.stream() );
 }
 
+function componentsHtml() {
+  return src(componentsPath.src.html)
+    .pipe( fileinclude() )
+    .pipe( webphtml() )
+    .pipe( dest(componentsPath.build.html) )
+    .pipe( browsersync.stream() )
+}
+
+function componentsCss() {
+  return src(componentsPath.src.css)
+    .pipe( scss({
+      outputStyle: 'expanded',
+    }) )
+    .pipe( group_media() )
+    .pipe( autoprefixer({
+      overrideBrowserslist: ['last 5 versions'],
+      cascade: true,
+    }) )
+    .pipe( dest(componentsPath.build.css) )
+    .pipe( clean_css() )
+    .pipe( rename({
+      extname: '.min.css'
+    }) )
+    .pipe( dest(componentsPath.build.css) )
+    .pipe( browsersync.stream() )
+}
+
+function componentsJs() {
+  return src(componentsPath.src.js)
+    .pipe( babel({
+      presets: ['@babel/env']
+    }) )
+    .pipe( dest(componentsPath.build.js) )
+    .pipe( uglify() )
+    .pipe( rename({
+      extname: '.min.js'
+    }) )
+    .pipe( dest(componentsPath.build.js) )
+    .pipe( browsersync.stream() )
+}
+
+function componentsTs() {
+  const tsComponentsResult = src(componentsPath.src.ts)
+    .pipe(tsComponentsProject());
+
+  return tsComponentsResult.js
+    .pipe(dest(componentsPath.build.ts))
+    .pipe( uglify() )
+    .pipe( rename({
+      extname: '.min.js'
+    }) )
+    .pipe(dest(componentsPath.build.ts))
+    .pipe( browsersync.stream() );
+}
+
 function images() {
   return src(path.src.img)
     .pipe( webp({
@@ -167,6 +247,10 @@ function watchFiles(params) {
   gulp.watch([path.watch.css], css);
   gulp.watch([path.watch.js], js);
   gulp.watch([path.watch.ts], ts);
+  gulp.watch([componentsPath.watch.html], componentsHtml);
+  gulp.watch([componentsPath.watch.css], componentsCss);
+  gulp.watch([componentsPath.watch.js], componentsJs);
+  gulp.watch([componentsPath.watch.ts], componentsTs);
   gulp.watch([path.watch.img], images);
   gulp.watch([path.watch.php], php);
 }
@@ -176,17 +260,21 @@ function clean(params) {
 }
 
 const 
-  build = gulp.series( clean, gulp.parallel(files, php, images, js, ts, css, html) ),
+  build = gulp.series( clean, gulp.parallel(files, php, images, js, ts, css, html, componentsJs, componentsTs, componentsCss, componentsHtml) ),
   watch = gulp.parallel(build, watchFiles, browserSync);
 
 
-exports.files   = files;
-exports.php     = php;
-exports.images  = images;
-exports.js      = js;
-exports.ts      = ts;
-exports.css     = css;
-exports.html    = html;
-exports.build   = build;
-exports.watch   = watch;
-exports.default = watch;
+exports.files             = files;
+exports.php               = php;
+exports.images            = images;
+exports.js                = js;
+exports.ts                = ts;
+exports.css               = css;
+exports.html              = html;
+exports.componentsJs      = componentsJs;
+exports.componentsTs      = componentsTs;
+exports.componentsCss     = componentsCss;
+exports.componentsHtml    = componentsHtml;
+exports.build             = build;
+exports.watch             = watch;
+exports.default           = watch;
